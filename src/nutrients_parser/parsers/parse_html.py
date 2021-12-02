@@ -1,23 +1,29 @@
 import lxml.html
 
 from ..lang import *
-from .parse_tabledata import parse_tabledata
+from .parse_tabledata import extractValuesAndUnitsFromWords, parse_tabledata
+from nutrients_parser.functions.identifiers import identifyValue, identifyNutrient, identifyPer
 from ..normalizers import normalize_all
+from ..functions.regex import *
+from pprint import pprint
 
-def parse_html(html):
-    data = parse_html_tablelike(html)
-    data = normalize_all(data)
+
+def parse_html(html, language="NL"):
+    data = parse_html_tablelike(html, language=language)
+    #data = normalize_all(data)
     return data
 
 # TODO handle colspan and rowspan (expand them to single cells)
 #      e.g. https://www.sainsburys.co.uk/gol-ui/product/potatoes/sainsburys-baking-potatoes-loose
 
-def parse_html_tablelike(html):
+
+def parse_html_tablelike(html, language="NL"):
     doc = lxml.html.fromstring(html)
 
     # We look for elements with two or more nutrient names.
     # Their closest common ancestor is assumed to be the 'tbody'.
-    nutrients = find_text_re(doc, nutrient_names_re, exact=True)
+    #nutrients = find_text_re(doc, nutrient_names_re, exact=True)
+    nutrients = find_nutrient_text(doc, exact=False, language=language)
     if len(nutrients) == 0:
         print("No nutrients found")
         return
@@ -34,8 +40,10 @@ def parse_html_tablelike(html):
 
     # Then we look for nutrient values within the 'tbody'.
     # Reject any numbers that look like nutrients (e.g. B6)
-    values = find_text_re(tbody, numeric_values_re)
-    values = list(filter(lambda v: not nutrient_names_re.search(v.text), values))
+    #values = find_text_re(tbody, numeric_values_re)
+    values = find_value_text(tbody, exact=False)
+    values = list(
+        filter(lambda v: not nutrient_names_re.search(v.text), values))
     if len(values) == 0:
         print("No nutrient value found")
         return
@@ -54,41 +62,50 @@ def parse_html_tablelike(html):
     # we still get the full text.
     td_depth = min(nutrient_depth, value_depth)
 
-    # print('tbody', tbody_depth, 'tr', tr_depth, 'td', td_depth, 'td.nut', nutrient_depth, 'td.val', value_depth)
+    #print('tbody', tbody_depth, 'tr', tr_depth, 'td', td_depth, 'td.nut', nutrient_depth, 'td.val', value_depth)
 
     rows = []
     for row in tbody.xpath(('*/' * (tr_depth - tbody_depth)).rstrip('/')):
         # TODO text_content() also gets text from children, but doesn't add whitespace
+        # NOTE Done above but added a space to join every child before you get '123 g' and 'This text' making it '123 gThis text'. So now it will be '123 g This text' :D
         if td_depth > tr_depth:
             # get cells from the row
             cells = row.xpath(('*/' * (td_depth - tr_depth)).rstrip('/'))
-            rows.append([c.text_content() for c in cells])
+            rows.append([remove_white_spaces(' '.join(c.itertext()))
+                        for c in cells])
         else:
             # in a list, the row may directly contain the nutrient
-            rows.append([row.text] + [c.text_content() for c in row.getchildren()])
-    
-    # strip whitespace - TODO move to post-processing step
+            rows.append([row.text] + [c.text_content()
+                        for c in row.getchildren()])
+
+    # No need for stripping whitespaces, happens already above, only replace empty strings with None
     for i, row in enumerate(rows):
-        rows[i] = [c.strip() if c else None for c in row]
+        rows[i] = [c if c else None for c in row]
 
-    return parse_tabledata(rows)
+    return parse_tabledata(rows, language=language)
 
-def find_text_re(sel, regex, exact=False):
-    """
-    Returns all non-blank text nodes matching a regular expression.
 
-    >>> import re
-    >>> import lxml.html
-    >>> doc = lxml.html.fromstring('<div><i>A</i><i>B</i><i>C</i><i>D</i><i>A B C D</i></div>')
-    >>> [el.text for el in find_text_re(doc, re.compile(r'(A|B)'))]
-    ['A', 'B', 'A B C D']
-    >>> [el.text for el in find_text_re(doc, re.compile(r'(A|B)'), exact=True)]
-    ['A', 'B']
-    """
+def remove_white_spaces(string):
+    # Simple regex sub to remove whitespaces
+    return regexSub("\s", " ", string).strip()
+
+
+def find_nutrient_text(sel, exact=False, language="NL"):
     if exact:
-        return [el for el in sel.xpath('//*[boolean(text())]') if el.text and regex.fullmatch(el.text)]
+        return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyNutrient(string=el.text, language=language)]
     else:
-        return [el for el in sel.xpath('//*[boolean(text())]') if el.text and regex.search(el.text)]
+        return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyNutrient(stringArray=el.text, language=language)]
+
+
+def find_value_text(sel, exact=False):
+    if exact:
+        return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyValue(string=el.text, exact=True)]
+    else:
+        return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyValue(string=el.text)]
+
+def find_per_text(sel, language = "NL"):
+    return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyPer(string=el.text, language = "NL")]
+
 
 def get_el_path(el):
     """
@@ -106,6 +123,7 @@ def get_el_path(el):
         parents.append(cur)
         cur = cur.getparent()
     return parents
+
 
 def find_common_ancestor(els):
     """
@@ -130,6 +148,7 @@ def find_common_ancestor(els):
         return common_parents[0]
     else:
         return None
+
 
 def find_strongest_common_ancestor(els):
     """
@@ -163,12 +182,14 @@ def find_strongest_common_ancestor(els):
             qualifying_ancestors.append((a, aeltuples))
 
     # sort by element depth
-    qualifying_ancestors.sort(key=lambda a: max(*[t[0] for t in a[1]]), reverse=True)
+    qualifying_ancestors.sort(key=lambda a: max(
+        *[t[0] for t in a[1]]), reverse=True)
 
     if len(qualifying_ancestors) > 0:
         return qualifying_ancestors[0][0]
     else:
         return None
+
 
 def find_common_ancestor_combination(a, b):
     """
@@ -200,5 +221,7 @@ def find_common_ancestor_combination(a, b):
     return strongest_common[0]
 
 # http://stackoverflow.com/questions/1518522
+
+
 def most_common(lst):
     return max(set(lst), key=lst.count)
