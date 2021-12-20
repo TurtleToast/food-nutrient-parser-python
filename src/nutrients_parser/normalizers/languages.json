@@ -1,0 +1,226 @@
+{
+    "NL": {
+        "per": "(per)",
+        "prepared": [
+            {
+                "returnValue": true,
+                "regex": "bereide?",
+                "maxWordLength": 1
+            },
+            {
+                "returnValue": false,
+                "regex": "((niet\\s+)|on)bereide?",
+                "maxWordLength": 2
+            }
+        ],
+        "units": [
+            {
+                "name": "Calories",
+                "notation": "kcal",
+                "regex": "kcal|kilo(-|\\s+)?calorie[eë|ee]n?"
+            },
+            {
+                "name": "Kilojoules",
+                "notation": "kJ",
+                "regex": "kJ|kilo(-|\\s+)?joules?"
+            },
+            {
+                "name": "Microgram",
+                "notation": "µg",
+                "regex": "µg|mcg|microgr(am)?s?"
+            },
+            {
+                "name": "Miligram",
+                "notation": "mg",
+                "regex": "mg|mgr|milligr(am)?s?"
+            },
+            {
+                "name": "Gram",
+                "notation": "g",
+                "regex": "g|gr|gram|grams"
+            },
+            {
+                "name": "Kilogram",
+                "notation": "kg",
+                "regex": "kg|kilo|kilogram"
+            },
+            {
+                "name": "Milliliter",
+                "notation": "ml",
+                "regex": "ml|milliliter"
+            },
+            {
+                "name": "Liter",
+                "notation": "l",
+                "regex": "l(iter)?"
+            }
+        ],
+        "nutrients": [
+            {
+                "name": "Energy",
+                "regex": "energ(y|ie|etis(ch)?e?)(\\s+(waarden)?)?|calorie[eë|ee]n",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Protein",
+                "regex": "(e[ir]w[ir]t(ten)?|prote[iï]n(en)?)",
+                "maxWordLength": 1
+            },
+            {
+                "name": "of which Sugar",
+                "regex": "(waarvan\\s+)suikers?",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Sugar",
+                "regex": "suikers?",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Iron",
+                "regex": "ijzers?",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Calsium",
+                "regex": "calsium",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Natrium",
+                "regex": "natrium",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Salt",
+                "regex": "zout",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Fiber",
+                "regex": "vezels?",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Starch",
+                "regex": "zetmeel",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Polyolen",
+                "regex": "polyolen",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Fat monosaturated",
+                "regex": "(waarvan\\s+)(enkelvoudige?\\s+)verzadigde?(\\s+vet((ten)|(zuur)|(zuren))?)?|vet((ten)|(zuur)|(zuren))?\\s+verzadigde?",
+                "maxWordLength": 4
+            },
+            {
+                "name": "Fat monounsaturated",
+                "regex": "(waarvan\\s+)(enkelvoudige?\\s+)onverzadigde?(\\s+vet((ten)|(zuur)|(zuren))?)?|vet((ten)|(zuur)|(zuren))?\\s+onverzadigde?",
+                "maxWordLength": 4
+            },
+            {
+                "name": "Fat polysaturated",
+                "regex": "(waarvan\\s+)(meervoudige?\\s+)verzadigde?(\\s+vet((ten)|(zuur)|(zuren))?)?|vet((ten)|(zuur)|(zuren))?\\s+verzadigde?",
+                "maxWordLength": 4
+            },
+            {
+                "name": "Fat polyunsaturated",
+                "regex": "(waarvan\\s+)(meervoudige?\\s+)onverzadigde?(\\s+vet((ten)|(zuur)|(zuren))?)?|vet((ten)|(zuur)|(zuren))?\\s+onverzadigde?",
+                "maxWordLength": 4
+            },
+            {
+                "name": "Fat saturated",
+                "regex": "(waarvan\\s+)verzadigde?(\\s+vet((ten)|(zuur)|(zuren))?)?|vet((ten)|(zuur)|(zuren))?\\s+verzadigde?",
+                "maxWordLength": 3
+            },
+            {
+                "name": "Fat unsaturated",
+                "regex": "(waarvan\\s+)onverzadigde?(\\s+vet((ten)|(zuur)|(zuren))?)?|vet((ten)|(zuur)|(zuren))?\\s+onverzadigde?",
+                "maxWordLength": 3
+            },
+            {
+                "name": "Fat trans",
+                "regex": "(waarvan\\s+)trans\\s+vet((ten)|(zuur)|(zuren))?|vet((ten)|(zuur)|(zuren))?\\s+trans",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Fat",
+                "regex": "vet(gehalte|ten|stoffen)?",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Carbohydrate",
+                "regex": "koolhydraat|koolhydraten|glucide[sn]",
+                "maxWordLength": 1
+            },
+            {
+                "name": "Biotin",
+                "regex": "vit(\\.|amine?\\s+)(H|B8)",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin A",
+                "regex": "vit(\\.|amine?\\s+)A",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B",
+                "regex": "vit(\\.|amine?\\s+)B",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B1",
+                "regex": "vit(\\.|amine?\\s+)B1",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B2",
+                "regex": "vit(\\.|amine?\\s+)B2",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B3",
+                "regex": "vit(\\.|amine?\\s+)B3",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B4",
+                "regex": "vit(\\.|amine?\\s+)B4",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B5",
+                "regex": "vit(\\.|amine?\\s+)B5",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B6",
+                "regex": "vit(\\.|amine?\\s+)B6",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B11",
+                "regex": "vit(\\.|amine?\\s+)B11",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin B12",
+                "regex": "vit(\\.|amine?\\s+)B12",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin C",
+                "regex": "vit(\\.|amine?\\s+)C",
+                "maxWordLength": 2
+            },
+            {
+                "name": "Vitamin D",
+                "regex": "vit(\\.|amine?\\s+)D",
+                "maxWordLength": 2
+            }
+        ]
+    }
+}

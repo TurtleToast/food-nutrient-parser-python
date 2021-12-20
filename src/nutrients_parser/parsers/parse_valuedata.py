@@ -60,7 +60,6 @@ Wanting
 
 
 def parse_valuedata(data, language="NL"):
-    pprint(data)
     # NOTE Assuming the following:
     # That a default unit will always be at the end of a nutrient.
 
@@ -77,7 +76,6 @@ def parse_valuedata(data, language="NL"):
     return data
 
 def checkForDefaultUnit(nutrientString, language="NL"):
-    print(nutrientString)
     # Split the complete nutrient string, if a default 
     stringArray = nutrientString.split()
 
