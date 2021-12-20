@@ -1,14 +1,11 @@
 import lxml.html
 
-from ..lang import *
-from .parse_tabledata import extractValuesAndUnitsFromWords, parse_tabledata
 from nutrients_parser.functions.identifiers import identifyValue, identifyNutrient, identifyPer
-from ..normalizers import normalize_all
 from ..functions.regex import *
 from pprint import pprint
 
 
-def parse_html(html, language="NL"):
+def parse_htmldata(html, language="NL"):
     data = parse_html_tablelike(html, language=language)
     #data = normalize_all(data)
     return data
@@ -19,11 +16,14 @@ def parse_html(html, language="NL"):
 
 def parse_html_tablelike(html, language="NL"):
     doc = lxml.html.fromstring(html)
+    
+    return extract_nutrientvalue_data(doc, language=language), extract_per_data(doc, language=language)
 
+def extract_nutrientvalue_data(doc, language = "NL"):
     # We look for elements with two or more nutrient names.
     # Their closest common ancestor is assumed to be the 'tbody'.
     #nutrients = find_text_re(doc, nutrient_names_re, exact=True)
-    nutrients = find_nutrient_text(doc, exact=False, language=language)
+    nutrients = find_nutrient_text(doc, exact = False, language=language)
     if len(nutrients) == 0:
         print("No nutrients found")
         return
@@ -41,9 +41,9 @@ def parse_html_tablelike(html, language="NL"):
     # Then we look for nutrient values within the 'tbody'.
     # Reject any numbers that look like nutrients (e.g. B6)
     #values = find_text_re(tbody, numeric_values_re)
-    values = find_value_text(tbody, exact=False)
+    values = find_value_text(tbody, exact = False)
     values = list(
-        filter(lambda v: not nutrient_names_re.search(v.text), values))
+        filter(lambda v: not identifyNutrient(stringArray = v.text), values))
     if len(values) == 0:
         print("No nutrient value found")
         return
@@ -66,12 +66,10 @@ def parse_html_tablelike(html, language="NL"):
 
     rows = []
     for row in tbody.xpath(('*/' * (tr_depth - tbody_depth)).rstrip('/')):
-        # TODO text_content() also gets text from children, but doesn't add whitespace
-        # NOTE Done above but added a space to join every child before you get '123 g' and 'This text' making it '123 gThis text'. So now it will be '123 g This text' :D
         if td_depth > tr_depth:
             # get cells from the row
             cells = row.xpath(('*/' * (td_depth - tr_depth)).rstrip('/'))
-            rows.append([remove_white_spaces(' '.join(c.itertext()))
+            rows.append([remove_white_spaces(''.join(c.itertext()))
                         for c in cells])
         else:
             # in a list, the row may directly contain the nutrient
@@ -81,9 +79,39 @@ def parse_html_tablelike(html, language="NL"):
     # No need for stripping whitespaces, happens already above, only replace empty strings with None
     for i, row in enumerate(rows):
         rows[i] = [c if c else None for c in row]
+    
+    return rows
 
-    return parse_tabledata(rows, language=language)
+def extract_per_data(doc, language = "NL"):
+    pers = find_per_text(doc, language=language)
+    if len(pers) == 0:
+        print("No per data found")
+        return
+    per_depth = len(get_el_path(pers[0]))
 
+    thead = find_strongest_common_ancestor(pers)
+    if thead is None:
+        print("Could not identify per body")
+        return
+    thead_depth = len(get_el_path(thead))
+
+    perRows = []
+    path = thead.xpath(('*/').rstrip('/'))
+    if len(path) == 0:
+        perRows.append([remove_white_spaces(thead.text_content())])
+    else:
+        for row in thead.xpath(('*/').rstrip('/')):
+            if thead_depth > per_depth:
+                # get cells from the row
+                cells = row.xpath(('*/').rstrip('/'))
+                perRows.append([remove_white_spaces(''.join(c.itertext()))
+                            for c in cells])
+            else:
+                # in a list, the row may directly contain the nutrient
+                perRows.append([row.text] + [c.text_content()
+                            for c in row.getchildren()])
+    
+    return perRows
 
 def remove_white_spaces(string):
     # Simple regex sub to remove whitespaces
@@ -103,8 +131,9 @@ def find_value_text(sel, exact=False):
     else:
         return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyValue(string=el.text)]
 
+
 def find_per_text(sel, language = "NL"):
-    return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyPer(string=el.text, language = "NL")]
+    return [el for el in sel.xpath('//*[boolean(text())]') if el.text and identifyPer(string=el.text, language = language)]
 
 
 def get_el_path(el):
@@ -165,6 +194,9 @@ def find_strongest_common_ancestor(els):
     >>> find_strongest_common_ancestor(doc.xpath('//em')).tag
     'tr'
     """
+    if len(els) == 1:
+        return els[0]
+
     ancestors = dict()
 
     # gather all ancestors
